@@ -1,0 +1,12 @@
+../Core/Src/MAX30112.c:33:6:HAL_I2C_MasterRxCpltCallback	2
+../Core/Src/MAX30112.c:113:6:max30112_init	12
+../Core/Src/MAX30112.c:160:6:max30112_write_reg	3
+../Core/Src/MAX30112.c:192:6:max30112_read_reg	3
+../Core/Src/MAX30112.c:243:6:max30112_data_read_command	3
+../Core/Src/MAX30112.c:262:6:max30112_read_data_dma1	2
+../Core/Src/MAX30112.c:272:9:get_MAX30112_DMA_started	1
+../Core/Src/MAX30112.c:278:6:max30112_read_data_dma2	2
+../Core/Src/MAX30112.c:308:10:get_max30112_red	1
+../Core/Src/MAX30112.c:313:10:get_max30112_ir	1
+../Core/Src/MAX30112.c:318:9:adjust_LED_brightness	7
+../Core/Src/MAX30112.c:340:9:get_current	1
