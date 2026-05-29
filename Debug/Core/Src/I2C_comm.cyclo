@@ -1,0 +1,5 @@
+../Core/Src/I2C_comm.c:52:9:_delay_us_init	2
+../Core/Src/I2C_comm.c:121:9:I2C_read_reg_8bit	1
+../Core/Src/I2C_comm.c:144:9:I2C_write_reg_8bit	1
+../Core/Src/I2C_comm.c:166:9:I2C_read_data	1
+../Core/Src/I2C_comm.c:188:9:I2C_write_data	1

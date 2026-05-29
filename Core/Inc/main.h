@@ -49,6 +49,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -57,8 +59,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define WATER_CONTACT_Pin GPIO_PIN_5
+#define WATER_CONTACT_GPIO_Port GPIOA
 #define MAX_INT_Pin GPIO_PIN_1
 #define MAX_INT_GPIO_Port GPIOB
+#define N_SLEEP_Pin GPIO_PIN_11
+#define N_SLEEP_GPIO_Port GPIOA
+#define N_CHG_Pin GPIO_PIN_12
+#define N_CHG_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

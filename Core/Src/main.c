@@ -22,7 +22,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "MAX30112.h"
-#include "stdio.h"
+#include <stdio.h>
+#include "hardware_defines.h"
+#include "LF_transmit.h"
+#include "rtc_conversions.h"
+#include "pec.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +51,10 @@ DMA_HandleTypeDef hdma_i2c3_rx;
 
 RTC_HandleTypeDef hrtc;
 
+TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim15;
+DMA_HandleTypeDef hdma_tim2_ch2_ch4;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -61,6 +69,8 @@ static void MX_I2C1_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_TIM15_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -74,7 +84,10 @@ int _write(int fd, char* ptr, int len)
     return len;
 }
 
-
+uint8_t _is_charging(void)
+{
+    return (HAL_GPIO_ReadPin(N_CHG_GPIO_Port, N_CHG_Pin) == 0);
+}
 
 /* USER CODE END 0 */
 
@@ -112,114 +125,148 @@ int main(void)
   MX_I2C3_Init();
   MX_RTC_Init();
   MX_USART2_UART_Init();
+  MX_TIM2_Init();
+  MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_Delay(50);
+  uint32_t rtc = RTC_get_2021_utc0_timestamp();
 
-  printf("Hello SO2 Module\n");
+	HAL_Delay(50);
 
-  if (max30112_init(&hi2c3))
-      printf("Error init MAX30112\n");
-  else printf("MAX30112 Init OK\n");
+	printf("Hello SO2 Module\n");
 
+	if (max30112_init(&hi2c3)) {
+		printf("Error init MAX30112\n");
+	} else {
+		printf("MAX30112 Init OK\n");
+	}
 
+	uint32_t red, ir;
+	uint32_t red_av, ir_av;
+	uint8_t i = 0;
+	uint8_t reset_filter = 1;
 
-  uint32_t red, ir;
+#define AVERAGE	20
 
-    uint32_t red_av, ir_av;
-
-    uint8_t i=0;
-    uint8_t reset_filter=1;
-  	#define AVERAGE	20
-
-    float red_ac, ir_ac, red_ac_old, ir_ac_old;
-    uint16_t x=0;
-    uint32_t t=0;
-
-    while(1)
-    {
-  	  if (HAL_GPIO_ReadPin(MAX_INT_GPIO_Port, MAX_INT_Pin)==0)
-  	  {
-  		t+=20; // ms
-
-  		max30112_read_data_dma2(&red, &ir);
-  		i++;
-  		i&=0xF;
+	float red_ac, ir_ac, red_ac_old, ir_ac_old;
+	uint16_t x = 0;
+	uint32_t t = 0;
 
 
-  		if ((t<10000)&&(i==0xA)) reset_filter=adjust_LED_brightness(0)||adjust_LED_brightness(1);
-
-  		/*
-
-  		if ((i==0x7)&&(reset_filter))
-  		{
-  			red_av=red;
-  			ir_av=ir;
-  			reset_filter=0;
-  		} else
-  		{
-  			red_av=red_av*AVERAGE+red;
-  			red_av/=AVERAGE+1;
-  			ir_av=ir_av*AVERAGE+ir;
-  			ir_av/=AVERAGE+1;
-
-  		}
-  		red_ac=(float)red/(float)red_av;
-  		ir_ac=(float)ir/(float)ir_av;
-  		red_ac--;
-  		ir_ac--;
-  		red_ac*=5000;
-  		ir_ac*=5000;
-  		red_ac+=140;
-  		ir_ac+=100;
-		*/
+	/* I2C slave initialization */
+//	I2CS_i2c_slave_init_handle(&hi2c1);
 
 
-  		max30112_read_data_dma1();
+	while (1) {
+		if (HAL_GPIO_ReadPin(MAX_INT_GPIO_Port, MAX_INT_Pin) == 0) {
+			t += 20; // ms
 
-  		//if (i%8==0) printf("%0.2f %0.2f %0.2f\n", t, red_ac, ir_ac);
-  		printf("{%d,%d,%d,%d,%d},\n",  t, red, ir, get_current(0), get_current(1));
+			max30112_read_data_dma2(&red, &ir);
+			i++;
+			i &= 0xF;
+
+			if ((t < 10000) && (i == 0xA))
+				reset_filter = adjust_LED_brightness(0)
+						|| adjust_LED_brightness(1);
+
+			/*
+
+			 if ((i==0x7)&&(reset_filter))
+			 {
+			 red_av=red;
+			 ir_av=ir;
+			 reset_filter=0;
+			 } else
+			 {
+			 red_av=red_av*AVERAGE+red;
+			 red_av/=AVERAGE+1;
+			 ir_av=ir_av*AVERAGE+ir;
+			 ir_av/=AVERAGE+1;
+
+			 }
+			 red_ac=(float)red/(float)red_av;
+			 ir_ac=(float)ir/(float)ir_av;
+			 red_ac--;
+			 ir_ac--;
+			 red_ac*=5000;
+			 ir_ac*=5000;
+			 red_ac+=140;
+			 ir_ac+=100;
+			 */
+
+			max30112_read_data_dma1();
+
+			//if (i%8==0) printf("%0.2f %0.2f %0.2f\n", t, red_ac, ir_ac);
+			printf("{%d,%d,%d,%d,%d},\n", t, red, ir, get_current(0), get_current(1));
+
+			/*
+			 GUI_SetColor(GUI_BLACK);
+			 GUI_DrawLine(x, GRAPH_START_Y0, x, GRAPH_START_Y0+GRAPH_SPAN-1);
+			 GUI_SetColor(GUI_BLUE);
+			 GUI_DrawLine(x-1, ir_ac_old, x, ir_ac);
+
+			 //GUI_DrawPoint(x,ir_ac+140);
+			 GUI_SetColor(GUI_RED);
+			 GUI_DrawLine(x-1, red_ac_old, x, red_ac);
+			 GUI_SetColor(GUI_YELLOW);
+			 GUI_DrawLine(x+1, GRAPH_START_Y0, x+1, GRAPH_START_Y0+GRAPH_SPAN-1);
+
+			 x++;
+			 if (x==GRAPH_START_X0+ GRAPH_POINTS) x=0;
+			 */
+
+			red_ac_old = red_ac;
+			ir_ac_old = ir_ac;
+
+		} //else printf("x");
+
+		HAL_Delay(5);
 
 
-  		/*
-  		 GUI_SetColor(GUI_BLACK);
-  	     GUI_DrawLine(x, GRAPH_START_Y0, x, GRAPH_START_Y0+GRAPH_SPAN-1);
-  		 GUI_SetColor(GUI_BLUE);
-  		 GUI_DrawLine(x-1, ir_ac_old, x, ir_ac);
+		if(RTC_get_2021_utc0_timestamp() != rtc) {
 
-  		 //GUI_DrawPoint(x,ir_ac+140);
-  		 GUI_SetColor(GUI_RED);
-  		 GUI_DrawLine(x-1, red_ac_old, x, red_ac);
-  		 GUI_SetColor(GUI_YELLOW);
-  		 GUI_DrawLine(x+1, GRAPH_START_Y0, x+1, GRAPH_START_Y0+GRAPH_SPAN-1);
+			/* encode and send LF data */
+			lf_data_t lfd = {0};
+			uint8_t transmit[20] = { 0 };
+			uint16_t len;
 
-  		 x++;
-  		 if (x==GRAPH_START_X0+ GRAPH_POINTS) x=0;
-		*/
+			lfd.type = LF_TYPE_SPO2_METER;
+			lfd.lf_id = 69;
+			lfd.spo2_meter.heart_rate_bpm = 1;
+			lfd.spo2_meter.R = 2;
+			lfd.spo2_meter.SpO2_perc = 3;
+			lfd.spo2_meter.charging = _is_charging();
 
+			HAL_GPIO_WritePin(N_SLEEP_GPIO_Port, N_SLEEP_Pin, 1);
 
-  		 red_ac_old=red_ac;
-  		 ir_ac_old=ir_ac;
+			HAL_Delay(5);
 
+			LF_encode_data(&lfd, transmit, &len);
+			LF_transmit(transmit, len);
 
-  	  } //else printf("x");
-  	HAL_Delay(5);
-    }
+		    HAL_Delay(15);
 
+		    if(LF_is_transmitting()) {
+		    	LF_stop_transmission();
+		    }
 
+		    HAL_GPIO_WritePin(N_SLEEP_GPIO_Port, N_SLEEP_Pin, 0);
 
+			rtc = RTC_get_2021_utc0_timestamp();
 
+//			printf(".\n");
+		}
+	}
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -387,6 +434,9 @@ static void MX_RTC_Init(void)
 
   /* USER CODE END RTC_Init 0 */
 
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
+
   /* USER CODE BEGIN RTC_Init 1 */
 
   /* USER CODE END RTC_Init 1 */
@@ -405,9 +455,144 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 0x0;
+  sTime.Minutes = 0x0;
+  sTime.Seconds = 0x0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+  sDate.Month = RTC_MONTH_JANUARY;
+  sDate.Date = 0x1;
+  sDate.Year = 0x0;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = TIMER_PERIOD_125kHz - 1;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.Pulse = TIMER_PERIOD_125kHz/2;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+  HAL_TIM_MspPostInit(&htim2);
+
+}
+
+/**
+  * @brief TIM15 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM15_Init(void)
+{
+
+  /* USER CODE BEGIN TIM15_Init 0 */
+
+  /* USER CODE END TIM15_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM15_Init 1 */
+
+  /* USER CODE END TIM15_Init 1 */
+  htim15.Instance = TIM15;
+  htim15.Init.Prescaler = 0;
+  htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim15.Init.Period = TIMER_PERIOD_125kHz*NR_OF_PERIODS-1;
+  htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim15.Init.RepetitionCounter = 0;
+  htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim15, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim15, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM15_Init 2 */
+
+  /* USER CODE END TIM15_Init 2 */
 
 }
 
@@ -459,6 +644,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
 
@@ -479,11 +667,27 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(N_SLEEP_GPIO_Port, N_SLEEP_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : WATER_CONTACT_Pin N_CHG_Pin */
+  GPIO_InitStruct.Pin = WATER_CONTACT_Pin|N_CHG_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pin : MAX_INT_Pin */
   GPIO_InitStruct.Pin = MAX_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(MAX_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : N_SLEEP_Pin */
+  GPIO_InitStruct.Pin = N_SLEEP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(N_SLEEP_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

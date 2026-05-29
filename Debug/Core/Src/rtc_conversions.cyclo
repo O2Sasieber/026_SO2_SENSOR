@@ -1,0 +1,14 @@
+../Core/Src/rtc_conversions.c:67:10:_convert_time_date_to_2021_utc0_timestamp	2
+../Core/Src/rtc_conversions.c:109:10:RTC_get_2021_utc0_timestamp	1
+../Core/Src/rtc_conversions.c:127:10:RTC_get_2021_utc0_timestamp_from_datetime	1
+../Core/Src/rtc_conversions.c:140:6:RTC_CalendarShow	1
+../Core/Src/rtc_conversions.c:160:6:RTC_get_utc0_time	1
+../Core/Src/rtc_conversions.c:170:6:RTC_get_utc0_date	1
+../Core/Src/rtc_conversions.c:180:6:RTC_get_local_date	1
+../Core/Src/rtc_conversions.c:189:6:RTC_CalendarShow2	1
+../Core/Src/rtc_conversions.c:201:6:RTC_init	1
+../Core/Src/rtc_conversions.c:212:6:RTC_set_utc0_time	2
+../Core/Src/rtc_conversions.c:238:6:RTC_convert_2021_utc0_timestamp_to_local_time_date	3
+../Core/Src/rtc_conversions.c:312:6:RTC_set_time	1
+../Core/Src/rtc_conversions.c:350:9:RTC_is_leap_year	4
+../Core/Src/rtc_conversions.c:364:6:RTC_timestamp_as_strings	1

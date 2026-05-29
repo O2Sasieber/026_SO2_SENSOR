@@ -1,0 +1,5 @@
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/generate_id.c:42:26:LL_GetUID_Word0	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/generate_id.c:53:26:LL_GetUID_Word1	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/generate_id.c:64:26:LL_GetUID_Word2	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/generate_id.c:75:10:generate_12bit_id	2
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/generate_id.c:95:10:generate_12bit_id_from_serial	1

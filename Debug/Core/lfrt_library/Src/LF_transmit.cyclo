@@ -1,0 +1,5 @@
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmit.c:220:13:_timpwm_pol	2
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmit.c:243:6:LF_transmit	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmit.c:297:9:LF_is_transmitting	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmit.c:303:6:LF_stop_transmission	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmit.c:327:6:HAL_TIM_PeriodElapsedCallback	6

@@ -1,0 +1,5 @@
+../Core/Src/PC_product_codes.c:26:10:PC_get_serial_number	1
+../Core/Src/PC_product_codes.c:39:9:PC_get_HW_id	1
+../Core/Src/PC_product_codes.c:52:9:PC_get_device_id	1
+../Core/Src/PC_product_codes.c:73:9:PC_get_device_subid	1
+../Core/Src/PC_product_codes.c:90:9:PC_get_I2C_address	1

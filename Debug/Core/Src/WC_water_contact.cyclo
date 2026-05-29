@@ -1,0 +1,7 @@
+../Core/Src/WC_water_contact.c:19:6:WC_reset_is_charged_flag	1
+../Core/Src/WC_water_contact.c:23:9:WC_get_charged_flag	1
+../Core/Src/WC_water_contact.c:27:6:WC_charge_water_contact_cap	3
+../Core/Src/WC_water_contact.c:55:6:WC_discharge_water_contact_cap	3
+../Core/Src/WC_water_contact.c:85:9:WC_is_dry	1
+../Core/Src/WC_water_contact.c:120:10:WC_get_dicharge_time	1
+../Core/Src/WC_water_contact.c:125:6:WC_check_discharge_pin	1

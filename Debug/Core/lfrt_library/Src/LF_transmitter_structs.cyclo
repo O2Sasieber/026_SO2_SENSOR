@@ -1,0 +1,8 @@
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:51:10:_encode_package	4
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:91:10:_decode_package	4
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:129:9:_lf_pec	2
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:164:10:_value_to_binary	3
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:194:6:_encode_header	1
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:214:10:_encode_footer	2
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:232:6:LF_encode_data	14
+C:/Seafile/BENJAMIN/03_STM32_REPOSITORIES/lfrt_library/Src/LF_transmitter_structs.c:351:6:LF_decode_data	18
